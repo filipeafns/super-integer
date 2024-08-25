@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            box-sizing: border-box;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        #scanButton {
+            display: block;
+            margin: 0 auto 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #000000;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #scanButton:hover {
+            background-color: #212121;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        #rescanButton {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: white;
+            background-color: #18A0FB;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #rescanButton:hover {
+            background-color: #0D8DE3;
+        }
+
+        .target-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        .target-icon {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <button id="scanButton">Scan for Non-Integer Values</button>
+    <div id="results"></div>
+
+    <script>
+    const resultsDiv = document.getElementById('results');
+    const scanButton = document.getElementById('scanButton');
+
+    scanButton.addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+      resultsDiv.innerHTML = 'Scanning...';
+    });
+
+    window.onmessage = (event) => {
+      if (event.data.pluginMessage.type === 'scan-results') {
+        const results = event.data.pluginMessage.results;
+        if (results.length === 0) {
+          resultsDiv.innerHTML = `
+            <p>Pixel perfection was found!</p>
+            <button id="rescanButton">Rescan</button>
+          `;
+          document.getElementById('rescanButton').addEventListener('click', () => {
+            parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+            resultsDiv.innerHTML = 'Scanning...';
+          });
+        } else {
+          let tableHTML = `
+            <p>Found ${results.length} non-integer value${results.length === 1 ? '' : 's'}:</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Layer Name</th>
+                  <th>Layer Type</th>
+                  <th>Property</th>
+                  <th>Value</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          results.forEach((item, index) => {
+            tableHTML += `
+              <tr>
+                <td>${item.name}</td>
+                <td>${item.type}</td>
+                <td>${item.property}</td>
+                <td>${item.value.toFixed(2)}</td>
+                <td>
+                  <button class="target-button" data-index="${index}">
+                    <svg class="target-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+
+          tableHTML += `
+              </tbody>
+            </table>
+          `;
+
+          resultsDiv.innerHTML = tableHTML;
+
+          // Add event listeners to the target buttons
+          document.querySelectorAll('.target-button').forEach(button => {
+            button.addEventListener('click', () => {
+              const index = button.getAttribute('data-index');
+              parent.postMessage({ pluginMessage: { type: 'focus-and-fit', index: parseInt(index) } }, '*');
+            });
+          });
+        }
+      } else if (event.data.pluginMessage.type === 'scan-error') {
+        resultsDiv.innerHTML = `<p>Error during scan: ${event.data.pluginMessage.message}</p>
+                                <button id="rescanButton">Try Again</button>`;
+        document.getElementById('rescanButton').addEventListener('click', () => {
+          parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+          resultsDiv.innerHTML = 'Scanning...';
+        });
+      }
+    };
+    </script>
+</body>
+</html>
