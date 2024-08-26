@@ -14,7 +14,7 @@
             overflow-y: auto;
         }
 
-        #scanButton, #rescanButton {
+        #scanButton {
             display: block;
             margin: 0 auto 20px;
             padding: 10px 20px;
@@ -24,12 +24,17 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
             font-weight: 500;
         }
 
-        #scanButton:hover, #rescanButton:hover {
+        #scanButton:hover {
             background-color: #1493E8;
+        }
+
+        #scanButton:disabled {
+            background-color: #A8A8A8;
+            cursor: not-allowed;
         }
 
         #results {
@@ -126,17 +131,22 @@
     </style>
 </head>
 <body>
-    <button id="scanButton">Scan for Non-Integer Values</button>
+    <button id="scanButton">Scan for Half Pixel Values</button>
     <div id="results"></div>
 
     <script>
     const resultsDiv = document.getElementById('results');
     const scanButton = document.getElementById('scanButton');
     let allResults = [];
+    let isScanning = false;
 
     scanButton.addEventListener('click', () => {
+      if (isScanning) return;
+      isScanning = true;
+      scanButton.disabled = true;
+      scanButton.textContent = 'Scanning...';
       parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
-      resultsDiv.innerHTML = 'Scanning...';
+      resultsDiv.innerHTML = '<p>Scanning in progress...</p>';
     });
 
     function createFilterSelect(results, selectedType = 'All') {
@@ -161,7 +171,7 @@
     }
 
     function displayResults(results, selectedType = 'All') {
-        let resultHTML = '<h3>Non-Integer Values Found:</h3>';
+        let resultHTML = '<h3>Half Pixel Values Found:</h3>';
         resultHTML += createFilterSelect(allResults, selectedType);
         resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
         resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
@@ -174,7 +184,6 @@
             </tr>`;
         });
         resultHTML += '</table>';
-        resultHTML += '<button id="rescanButton">Rescan</button>';
         resultsDiv.innerHTML = resultHTML;
 
         // Add event listeners
@@ -186,38 +195,24 @@
         });
 
         document.getElementById('filterSelect').addEventListener('change', filterResults);
-
-        document.getElementById('rescanButton').addEventListener('click', () => {
-            parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
-            resultsDiv.innerHTML = 'Scanning...';
-        });
     }
 
     window.onmessage = (event) => {
       const message = event.data.pluginMessage;
+      isScanning = false;
+      scanButton.disabled = false;
+      scanButton.textContent = 'Scan Again';
+
       if (message.type === 'scan-results') {
         allResults = message.results;
         if (allResults.length === 0) {
-          resultsDiv.innerHTML = `
-            <p>Pixel perfection was found! No non-integer values detected.</p>
-            <button id="rescanButton">Rescan</button>
-          `;
-          document.getElementById('rescanButton').addEventListener('click', () => {
-            parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
-            resultsDiv.innerHTML = 'Scanning...';
-          });
+          resultsDiv.innerHTML = `<p>Pixel perfection achieved! No half pixel values detected.</p>`;
         } else {
           displayResults(allResults);
         }
       } else if (message.type === 'scan-error') {
-        resultsDiv.innerHTML = `<p>Error: ${message.message}</p>
-                                <button id="rescanButton">Try Again</button>`;
-        document.getElementById('rescanButton').addEventListener('click', () => {
-          parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
-          resultsDiv.innerHTML = 'Scanning...';
-        });
+        resultsDiv.innerHTML = `<p>Error: ${message.message}</p>`;
       }
-      console.log("Message received in UI:", message);
     };
     </script>
 </body>
