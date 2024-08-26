@@ -60,6 +60,8 @@
             background: #E2E2E2;
             box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.10);
             padding: 16px;
+            height: 100%;
+            overflow-y: auto;
         }
 
         table {
@@ -161,12 +163,37 @@
             height: 200px;
             font-size: 18px;
             font-weight: 600;
-            color: #4CAF50;
+            color: #000000;
             text-align: center;
             background-color: #E8F5E9;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #results {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .initial-message {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            color: #666;
+        }
+
+        .initial-message h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .initial-message p {
+            font-size: 16px;
+            max-width: 80%;
         }
     </style>
 </head>
@@ -197,7 +224,12 @@
         <button id="scanButton">Scan for Half Pixel Values</button>
     </header>
     <div class="results-container">
-        <div id="results"></div>
+        <div id="results">
+            <div class="initial-message">
+                <h2>Welcome to Half Pixel Detector!</h2>
+                <p>Click the "Scan for Half Pixel Values" button above to start detecting non-integer values in your design.</p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -206,13 +238,21 @@
     let allResults = [];
     let isScanning = false;
 
+    function clearInitialMessage() {
+        const initialMessage = document.querySelector('.initial-message');
+        if (initialMessage) {
+            initialMessage.style.display = 'none';
+        }
+    }
+
     scanButton.addEventListener('click', () => {
-      if (isScanning) return;
-      isScanning = true;
-      scanButton.disabled = true;
-      scanButton.textContent = 'Scanning...';
-      parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
-      resultsDiv.innerHTML = '<p>Scanning in progress...</p>';
+        if (isScanning) return;
+        isScanning = true;
+        scanButton.disabled = true;
+        scanButton.textContent = 'Scanning...';
+        clearInitialMessage();
+        parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+        resultsDiv.innerHTML = '<p>Scanning in progress...</p>';
     });
 
     function createFilterSelect(results, selectedType = 'All') {
@@ -237,6 +277,7 @@
     }
 
     function displayResults(results, selectedType = 'All') {
+        clearInitialMessage();
         let resultHTML = createFilterSelect(allResults, selectedType);
         resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
         resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
@@ -273,7 +314,7 @@
         if (allResults.length === 0) {
           resultsDiv.innerHTML = `
             <div class="perfection-message">
-              <p>🎉 Pixel perfection achieved! No half pixel values detected.</p>
+              <p>Pixel perfection achieved! No half pixel values detected.</p>
             </div>`;
         } else {
           displayResults(allResults);
