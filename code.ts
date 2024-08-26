@@ -57,11 +57,8 @@ figma.ui.onmessage = async (msg) => {
 };
 
 async function performScan(): Promise<Array<{id: string, name: string, type: string, property: string, value: number}>> {
-  // This is a placeholder for the actual scan logic
-  // You'll need to implement the real scanning logic here
   const scanResults: Array<{id: string, name: string, type: string, property: string, value: number}> = [];
   
-  // Example of how you might scan for non-integer positions
   figma.currentPage.findAll().forEach(node => {
     if ('x' in node && !Number.isInteger(node.x)) {
       scanResults.push({
@@ -79,6 +76,16 @@ async function performScan(): Promise<Array<{id: string, name: string, type: str
         type: node.type,
         property: 'y',
         value: node.y
+      });
+    }
+    // Add check for non-integer font size
+    if ('fontSize' in node && typeof node.fontSize === 'number' && !Number.isInteger(node.fontSize)) {
+      scanResults.push({
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        property: 'fontSize',
+        value: node.fontSize
       });
     }
   });

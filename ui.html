@@ -2,105 +2,126 @@
 <html>
 <head>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 16px;
             background-color: #f0f0f0;
             box-sizing: border-box;
             height: 100vh;
             overflow-y: auto;
         }
 
-        #scanButton {
+        #scanButton, #rescanButton {
             display: block;
             margin: 0 auto 20px;
             padding: 10px 20px;
             font-size: 16px;
             color: white;
-            background-color: #000000;
+            background-color: #18A0FB;
             border: none;
-            border-radius: 50px;
+            border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            font-weight: 500;
         }
 
-        #scanButton:hover {
-            background-color: #212121;
+        #scanButton:hover, #rescanButton:hover {
+            background-color: #1493E8;
         }
 
         #results {
             margin-top: 20px;
         }
+
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             font-size: 14px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         th, td {
-            border-top: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
-            padding: 12px;
+            padding: 12px 16px;
             text-align: left;
-            font-size: 14px;
         }
 
         th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+            background-color: #F5F5F5;
+            font-weight: 600;
+            color: #333;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
 
         tr:nth-child(even) {
-            background-color: #f8f8f8;
-        }
-
-        #rescanButton {
-            margin-top: 10px;
-            padding: 8px 16px;
-            font-size: 14px;
-            color: white;
-            background-color: #18A0FB;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        #rescanButton:hover {
-            background-color: #0D8DE3;
-        }
-
-        .target-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 2px;
-            margin-left: 5px;
-            vertical-align: middle;
-        }
-
-        .target-icon {
-            width: 16px;
-            height: 16px;
+            background-color: #FAFAFA;
         }
 
         .counter {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
         }
 
         .selectable-row {
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s ease;
         }
 
         .selectable-row:hover {
-            background-color: #e0e0e0;
+            background-color: #F0F7FF;
+        }
+
+        .filter-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            background-color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-right: 12px;
+        }
+
+        #filterSelect {
+            flex-grow: 1;
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 30px;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        #filterSelect:hover {
+            border-color: #18A0FB;
+        }
+
+        #filterSelect:focus {
+            outline: none;
+            border-color: #18A0FB;
+            box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.2);
         }
     </style>
 </head>
@@ -111,17 +132,72 @@
     <script>
     const resultsDiv = document.getElementById('results');
     const scanButton = document.getElementById('scanButton');
+    let allResults = [];
 
     scanButton.addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
       resultsDiv.innerHTML = 'Scanning...';
     });
 
+    function createFilterSelect(results, selectedType = 'All') {
+        const nodeTypes = ['All', ...new Set(results.map(r => r.type))];
+        let selectHTML = `
+            <div class="filter-container">
+                <span class="filter-label">Filter by Type:</span>
+                <select id="filterSelect">
+                    ${nodeTypes.map(type => `<option value="${type}" ${type === selectedType ? 'selected' : ''}>${type}</option>`).join('')}
+                </select>
+            </div>
+        `;
+        return selectHTML;
+    }
+
+    function filterResults() {
+        const selectedType = document.getElementById('filterSelect').value;
+        const filteredResults = selectedType === 'All' 
+            ? allResults 
+            : allResults.filter(result => result.type === selectedType);
+        displayResults(filteredResults, selectedType);
+    }
+
+    function displayResults(results, selectedType = 'All') {
+        let resultHTML = '<h3>Non-Integer Values Found:</h3>';
+        resultHTML += createFilterSelect(allResults, selectedType);
+        resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
+        resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
+        results.forEach((result) => {
+            resultHTML += `<tr class="selectable-row" data-node-id="${result.id}">
+                <td>${result.name}</td>
+                <td>${result.type}</td>
+                <td>${result.property}</td>
+                <td>${result.value}</td>
+            </tr>`;
+        });
+        resultHTML += '</table>';
+        resultHTML += '<button id="rescanButton">Rescan</button>';
+        resultsDiv.innerHTML = resultHTML;
+
+        // Add event listeners
+        document.querySelectorAll('.selectable-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const nodeId = row.getAttribute('data-node-id');
+                parent.postMessage({ pluginMessage: { type: 'select-node', id: nodeId } }, '*');
+            });
+        });
+
+        document.getElementById('filterSelect').addEventListener('change', filterResults);
+
+        document.getElementById('rescanButton').addEventListener('click', () => {
+            parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+            resultsDiv.innerHTML = 'Scanning...';
+        });
+    }
+
     window.onmessage = (event) => {
       const message = event.data.pluginMessage;
       if (message.type === 'scan-results') {
-        const results = message.results;
-        if (results.length === 0) {
+        allResults = message.results;
+        if (allResults.length === 0) {
           resultsDiv.innerHTML = `
             <p>Pixel perfection was found! No non-integer values detected.</p>
             <button id="rescanButton">Rescan</button>
@@ -131,33 +207,7 @@
             resultsDiv.innerHTML = 'Scanning...';
           });
         } else {
-          let resultHTML = '<h3>Non-Integer Values Found:</h3>';
-          resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
-          resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
-          results.forEach((result, index) => {
-            resultHTML += `<tr class="selectable-row" data-node-id="${result.id}">
-              <td>${result.name}</td>
-              <td>${result.type}</td>
-              <td>${result.property}</td>
-              <td>${result.value}</td>
-            </tr>`;
-          });
-          resultHTML += '</table>';
-          resultHTML += '<button id="rescanButton">Rescan</button>';
-          resultsDiv.innerHTML = resultHTML;
-          
-          // Add click event listeners to the rows
-          document.querySelectorAll('.selectable-row').forEach(row => {
-            row.addEventListener('click', () => {
-              const nodeId = row.getAttribute('data-node-id');
-              parent.postMessage({ pluginMessage: { type: 'select-node', id: nodeId } }, '*');
-            });
-          });
-
-          document.getElementById('rescanButton').addEventListener('click', () => {
-            parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
-            resultsDiv.innerHTML = 'Scanning...';
-          });
+          displayResults(allResults);
         }
       } else if (message.type === 'scan-error') {
         resultsDiv.innerHTML = `<p>Error: ${message.message}</p>
