@@ -39,15 +39,33 @@
             font-size: 16px;
             color: white;
             background-color: #000;
+            color: rgba(255, 255, 255, 0.8);
             border: none;
-            border-radius: 6px;
+            border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
+            overflow: hidden;
         }
 
-        #scanButton:hover {
-            background-color: #333;
+        #scanButton {
+            position: relative;
+        }
+        #scanButton:hover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 52px;
+            height: 48px;
+            background: linear-gradient(to left, #565656, #000);
+            animation: scanAnimation 2s infinite;
+            mix-blend-mode: screen;
+        }
+        @keyframes scanAnimation {
+            0% { left: 0; }
+            50% { left: 100%; }
+            100% { left: 0; }
         }
 
         #scanButton:disabled {
@@ -56,12 +74,14 @@
         }
 
         .results-container {
+            display: flex;
+            flex-direction: column;
             border-radius: 8px;
             background: #E2E2E2;
             box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.10);
             padding: 16px;
             height: 100%;
-            overflow-y: auto;
+            overflow: hidden; /* Changed from overflow-y: auto; */
         }
 
         table {
@@ -113,13 +133,14 @@
         }
 
         .filter-container {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: #E2E2E2;
+            padding-bottom: 16px;
+            margin-bottom: 0; /* Remove bottom margin */
             display: flex;
             align-items: center;
-            margin-bottom: 16px;
-            background-color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .filter-label {
@@ -143,17 +164,17 @@
             background-position: right 12px center;
             padding-right: 30px;
             cursor: pointer;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, outline 0.2s ease;
         }
 
         #filterSelect:hover {
-            border-color: #18A0FB;
+            border-color: #000;
         }
 
         #filterSelect:focus {
-            outline: none;
-            border-color: #18A0FB;
-            box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.2);
+            outline: 2px solid #000;
+            outline-offset: 1px;
+            border-color: #000;
         }
 
         .perfection-message {
@@ -172,8 +193,9 @@
         }
 
         #results {
-            height: 100%;
+            flex-grow: 1;
             overflow-y: auto;
+            padding-top: 16px; /* Add some top padding */
         }
 
         .initial-message {
@@ -224,6 +246,9 @@
         <button id="scanButton">Scan for Half Pixel Values</button>
     </header>
     <div class="results-container">
+        <div class="filter-container" id="filterContainer" style="display: none;">
+            <!-- Filter will be inserted here by JavaScript -->
+        </div>
         <div id="results">
             <div class="initial-message">
                 <h2>Welcome to Half Pixel Detector!</h2>
@@ -255,17 +280,18 @@
         resultsDiv.innerHTML = '<p>Scanning in progress...</p>';
     });
 
+    const filterContainer = document.getElementById('filterContainer');
+
     function createFilterSelect(results, selectedType = 'All') {
         const nodeTypes = ['All', ...new Set(results.map(r => r.type))];
         let selectHTML = `
-            <div class="filter-container">
-                <span class="filter-label">Filter by Type:</span>
-                <select id="filterSelect">
-                    ${nodeTypes.map(type => `<option value="${type}" ${type === selectedType ? 'selected' : ''}>${type}</option>`).join('')}
-                </select>
-            </div>
+            <span class="filter-label">Filter by Type:</span>
+            <select id="filterSelect">
+                ${nodeTypes.map(type => `<option value="${type}" ${type === selectedType ? 'selected' : ''}>${type}</option>`).join('')}
+            </select>
         `;
-        return selectHTML;
+        filterContainer.innerHTML = selectHTML;
+        filterContainer.style.display = 'flex';
     }
 
     function filterResults() {
@@ -278,8 +304,8 @@
 
     function displayResults(results, selectedType = 'All') {
         clearInitialMessage();
-        let resultHTML = createFilterSelect(allResults, selectedType);
-        resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
+        createFilterSelect(allResults, selectedType);
+        let resultHTML = `<div class="counter">Total items found: ${results.length}</div>`;
         resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
         results.forEach((result) => {
             resultHTML += `<tr class="selectable-row" data-node-id="${result.id}">
