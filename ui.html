@@ -93,6 +93,15 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
+
+        .selectable-row {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .selectable-row:hover {
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -126,7 +135,7 @@
           resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
           resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
           results.forEach((result, index) => {
-            resultHTML += `<tr>
+            resultHTML += `<tr class="selectable-row" data-node-id="${result.id}">
               <td>${result.name}</td>
               <td>${result.type}</td>
               <td>${result.property}</td>
@@ -136,6 +145,15 @@
           resultHTML += '</table>';
           resultHTML += '<button id="rescanButton">Rescan</button>';
           resultsDiv.innerHTML = resultHTML;
+          
+          // Add click event listeners to the rows
+          document.querySelectorAll('.selectable-row').forEach(row => {
+            row.addEventListener('click', () => {
+              const nodeId = row.getAttribute('data-node-id');
+              parent.postMessage({ pluginMessage: { type: 'select-node', id: nodeId } }, '*');
+            });
+          });
+
           document.getElementById('rescanButton').addEventListener('click', () => {
             parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
             resultsDiv.innerHTML = 'Scanning...';
