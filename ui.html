@@ -8,28 +8,33 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 16px;
-            background-color: #f0f0f0;
+            background-color: #D9D9D9;
             box-sizing: border-box;
             height: 100vh;
             overflow-y: auto;
             max-width: 100%;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .logo-container {
+        .header {
             display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 8px 0;
         }
 
         .logo {
-            width: 60px;
-            height: 60px;
+            width: 54px;
+            height: 55px;
         }
 
         #scanButton {
-            display: block;
-            margin: 0 auto 20px;
             padding: 10px 20px;
             font-size: 16px;
             color: white;
@@ -50,8 +55,11 @@
             cursor: not-allowed;
         }
 
-        #results {
-            margin-top: 20px;
+        .results-container {
+            border-radius: 8px;
+            background: #E2E2E2;
+            box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.10);
+            padding: 16px;
         }
 
         table {
@@ -99,7 +107,7 @@
         }
 
         .selectable-row:hover {
-            background-color: #F0F7FF;
+            background-color: #f0f0f0;
         }
 
         .filter-container {
@@ -146,45 +154,51 @@
             box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.2);
         }
 
-        .results-title {
-            text-align: center;
-            margin-bottom: 20px;
+        .perfection-message {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
             font-size: 18px;
             font-weight: 600;
+            color: #4CAF50;
+            text-align: center;
+            background-color: #E8F5E9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-    <div class="logo-container">
-        <svg class="logo" width="81" height="81" viewBox="0 0 81 81" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2.12896" y="2.12896" width="76.7421" height="76.7421" rx="18.2805" fill="#171717"/>
-            <rect x="2.12896" y="2.12896" width="76.7421" height="76.7421" rx="18.2805" stroke="url(#paint0_linear_1_2)" stroke-width="3.25792"/>
-            <path d="M14.6177 21.4955C14.6177 16.6973 18.5073 12.8077 23.3055 12.8077H26.5634V25.1154H14.6177V21.4955Z" fill="#333333"/>
-            <rect x="28.0114" y="12.8077" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="41.405" y="12.8077" width="11.9457" height="12.3077" fill="#333333"/>
-            <path d="M54.7986 12.8077H58.0565C62.8546 12.8077 66.7443 16.6973 66.7443 21.4955V25.1154H54.7986V12.8077Z" fill="#333333"/>
-            <rect x="14.6177" y="26.5634" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="28.0114" y="26.5634" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="54.7986" y="26.5634" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="14.6177" y="40.681" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="28.0114" y="40.681" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="41.405" y="40.681" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="54.7986" y="40.681" width="11.9457" height="12.3077" fill="#333333"/>
-            <path d="M14.6177 54.4366H26.5634V66.7443H23.3055C18.5073 66.7443 14.6177 62.8547 14.6177 58.0566V54.4366Z" fill="#333333"/>
-            <rect x="47.1968" y="33.8032" width="11.9457" height="12.3077" fill="white"/>
-            <rect x="28.0114" y="54.4366" width="11.9457" height="12.3077" fill="#333333"/>
-            <rect x="41.405" y="54.4366" width="11.9457" height="12.3077" fill="#333333"/>
-            <path d="M54.7986 54.4366H66.7443V58.0566C66.7443 62.8547 62.8546 66.7443 58.0565 66.7443H54.7986V54.4366Z" fill="#333333"/>
+    <header class="header">
+        <svg class="logo" width="54" height="55" viewBox="0 0 54 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g filter="url(#filter0_d_2_59)">
+                <rect x="3" y="3" width="48" height="48" rx="11.4627" fill="#ECECEC"/>
+                <circle cx="27" cy="27" r="16.1194" fill="#0E0E0E"/>
+                <rect width="5.73134" height="5.73134" transform="translate(20.9102 20.9104)" fill="#ECECEC"/>
+                <rect width="5.73134" height="5.73134" transform="translate(27.3579 20.9104)" fill="#ECECEC"/>
+                <rect width="5.73134" height="5.73134" transform="translate(20.9102 27.3582)" fill="#ECECEC"/>
+                <rect width="4.29851" height="4.29851" transform="translate(28.791 28.791)" fill="#ECECEC"/>
+            </g>
             <defs>
-                <linearGradient id="paint0_linear_1_2" x1="40.5" y1="0.5" x2="40.5" y2="80.5" gradientUnits="userSpaceOnUse">
-                    <stop/>
-                    <stop offset="1" stop-color="#666666"/>
-                </linearGradient>
+                <filter id="filter0_d_2_59" x="0.134328" y="0.850746" width="53.7313" height="53.7313" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                    <feOffset dy="0.716418"/>
+                    <feGaussianBlur stdDeviation="1.43284"/>
+                    <feComposite in2="hardAlpha" operator="out"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
+                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_2_59"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_2_59" result="shape"/>
+                </filter>
             </defs>
         </svg>
+        <button id="scanButton">Scan for Half Pixel Values</button>
+    </header>
+    <div class="results-container">
+        <div id="results"></div>
     </div>
-    <button id="scanButton">Scan for Half Pixel Values</button>
-    <div id="results"></div>
 
     <script>
     const resultsDiv = document.getElementById('results');
@@ -223,8 +237,7 @@
     }
 
     function displayResults(results, selectedType = 'All') {
-        let resultHTML = '<h3 class="results-title">Half Pixel Values Found</h3>';
-        resultHTML += createFilterSelect(allResults, selectedType);
+        let resultHTML = createFilterSelect(allResults, selectedType);
         resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
         resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
         results.forEach((result) => {
@@ -258,7 +271,10 @@
       if (message.type === 'scan-results') {
         allResults = message.results;
         if (allResults.length === 0) {
-          resultsDiv.innerHTML = `<p>Pixel perfection achieved! No half pixel values detected.</p>`;
+          resultsDiv.innerHTML = `
+            <div class="perfection-message">
+              <p>🎉 Pixel perfection achieved! No half pixel values detected.</p>
+            </div>`;
         } else {
           displayResults(allResults);
         }
