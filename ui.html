@@ -87,6 +87,12 @@
             width: 16px;
             height: 16px;
         }
+
+        .counter {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -103,11 +109,12 @@
     });
 
     window.onmessage = (event) => {
-      if (event.data.pluginMessage.type === 'scan-results') {
-        const results = event.data.pluginMessage.results;
+      const message = event.data.pluginMessage;
+      if (message.type === 'scan-results') {
+        const results = message.results;
         if (results.length === 0) {
           resultsDiv.innerHTML = `
-            <p>Pixel perfection was found!</p>
+            <p>Pixel perfection was found! No non-integer values detected.</p>
             <button id="rescanButton">Rescan</button>
           `;
           document.getElementById('rescanButton').addEventListener('click', () => {
@@ -115,64 +122,34 @@
             resultsDiv.innerHTML = 'Scanning...';
           });
         } else {
-          let tableHTML = `
-            <p>Found ${results.length} non-integer value${results.length === 1 ? '' : 's'}:</p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Layer Name</th>
-                  <th>Layer Type</th>
-                  <th>Property</th>
-                  <th>Value</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-
-          results.forEach((item, index) => {
-            tableHTML += `
-              <tr>
-                <td>${item.name}</td>
-                <td>${item.type}</td>
-                <td>${item.property}</td>
-                <td>${item.value.toFixed(2)}</td>
-                <td>
-                  <button class="target-button" data-index="${index}">
-                    <svg class="target-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            `;
+          let resultHTML = '<h3>Non-Integer Values Found:</h3>';
+          resultHTML += `<div class="counter">Total items found: ${results.length}</div>`;
+          resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
+          results.forEach((result, index) => {
+            resultHTML += `<tr>
+              <td>${result.name}</td>
+              <td>${result.type}</td>
+              <td>${result.property}</td>
+              <td>${result.value}</td>
+            </tr>`;
           });
-
-          tableHTML += `
-              </tbody>
-            </table>
-          `;
-
-          resultsDiv.innerHTML = tableHTML;
-
-          // Add event listeners to the target buttons
-          document.querySelectorAll('.target-button').forEach(button => {
-            button.addEventListener('click', () => {
-              const index = button.getAttribute('data-index');
-              parent.postMessage({ pluginMessage: { type: 'focus-and-fit', index: parseInt(index) } }, '*');
-            });
+          resultHTML += '</table>';
+          resultHTML += '<button id="rescanButton">Rescan</button>';
+          resultsDiv.innerHTML = resultHTML;
+          document.getElementById('rescanButton').addEventListener('click', () => {
+            parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+            resultsDiv.innerHTML = 'Scanning...';
           });
         }
-      } else if (event.data.pluginMessage.type === 'scan-error') {
-        resultsDiv.innerHTML = `<p>Error during scan: ${event.data.pluginMessage.message}</p>
+      } else if (message.type === 'scan-error') {
+        resultsDiv.innerHTML = `<p>Error: ${message.message}</p>
                                 <button id="rescanButton">Try Again</button>`;
         document.getElementById('rescanButton').addEventListener('click', () => {
           parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
           resultsDiv.innerHTML = 'Scanning...';
         });
       }
+      console.log("Message received in UI:", message);
     };
     </script>
 </body>
