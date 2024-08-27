@@ -257,73 +257,71 @@
     <script>
     const resultsDiv = document.getElementById('results');
     const scanButton = document.getElementById('scanButton');
+    const filterContainer = document.getElementById('filterContainer');
     let allResults = [];
     let isScanning = false;
 
     function clearInitialMessage() {
-        const initialMessage = document.querySelector('.initial-message');
-        if (initialMessage) {
-            initialMessage.style.display = 'none';
-        }
+      const initialMessage = document.querySelector('.initial-message');
+      if (initialMessage) {
+        initialMessage.style.display = 'none';
+      }
     }
 
     scanButton.addEventListener('click', () => {
-        if (isScanning) return;
-        isScanning = true;
-        scanButton.disabled = true;
-        scanButton.textContent = 'Scanning...';
-        clearInitialMessage();
-        parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
-        resultsDiv.innerHTML = '<p>Scanning in progress...</p>';
+      if (isScanning) return;
+      isScanning = true;
+      scanButton.disabled = true;
+      scanButton.textContent = 'Scanning...';
+      clearInitialMessage();
+      parent.postMessage({ pluginMessage: { type: 'scan' } }, '*');
+      resultsDiv.innerHTML = '<p>Scanning in progress...</p>';
     });
 
-    const filterContainer = document.getElementById('filterContainer');
-
     function createFilterSelect(results, selectedType = 'All') {
-        const nodeTypes = ['All', ...new Set(results.map(r => r.type))];
-        let selectHTML = `
-            <span class="filter-label">Filter by Type:</span>
-            <select id="filterSelect">
-                ${nodeTypes.map(type => `<option value="${type}" ${type === selectedType ? 'selected' : ''}>${type}</option>`).join('')}
-            </select>
-        `;
-        filterContainer.innerHTML = selectHTML;
-        filterContainer.style.display = 'flex';
+      const nodeTypes = ['All', ...new Set(results.map(r => r.type))];
+      let selectHTML = `
+        <span class="filter-label">Filter by Type:</span>
+        <select id="filterSelect">
+          ${nodeTypes.map(type => `<option value="${type}" ${type === selectedType ? 'selected' : ''}>${type}</option>`).join('')}
+        </select>
+      `;
+      filterContainer.innerHTML = selectHTML;
+      filterContainer.style.display = 'flex';
     }
 
     function filterResults() {
-        const selectedType = document.getElementById('filterSelect').value;
-        const filteredResults = selectedType === 'All' 
-            ? allResults 
-            : allResults.filter(result => result.type === selectedType);
-        displayResults(filteredResults, selectedType);
+      const selectedType = document.getElementById('filterSelect').value;
+      const filteredResults = selectedType === 'All' 
+        ? allResults 
+        : allResults.filter(result => result.type === selectedType);
+      displayResults(filteredResults, selectedType);
     }
 
     function displayResults(results, selectedType = 'All') {
-        clearInitialMessage();
-        createFilterSelect(allResults, selectedType);
-        let resultHTML = `<div class="counter">Total items found: ${results.length}</div>`;
-        resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
-        results.forEach((result) => {
-            resultHTML += `<tr class="selectable-row" data-node-id="${result.id}">
-                <td>${result.name}</td>
-                <td>${result.type}</td>
-                <td>${result.property}</td>
-                <td>${result.value}</td>
-            </tr>`;
-        });
-        resultHTML += '</table>';
-        resultsDiv.innerHTML = resultHTML;
+      clearInitialMessage();
+      createFilterSelect(allResults, selectedType);
+      let resultHTML = `<div class="counter">Total items found: ${results.length}</div>`;
+      resultHTML += '<table><tr><th>Name</th><th>Type</th><th>Property</th><th>Value</th></tr>';
+      results.forEach((result) => {
+        resultHTML += `<tr class="selectable-row" data-node-id="${result.id}">
+          <td>${result.name}</td>
+          <td>${result.type}</td>
+          <td>${result.property}</td>
+          <td>${result.value}</td>
+        </tr>`;
+      });
+      resultHTML += '</table>';
+      resultsDiv.innerHTML = resultHTML;
 
-        // Add event listeners
-        document.querySelectorAll('.selectable-row').forEach(row => {
-            row.addEventListener('click', () => {
-                const nodeId = row.getAttribute('data-node-id');
-                parent.postMessage({ pluginMessage: { type: 'select-node', id: nodeId } }, '*');
-            });
+      document.querySelectorAll('.selectable-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const nodeId = row.getAttribute('data-node-id');
+          parent.postMessage({ pluginMessage: { type: 'select-node', id: nodeId } }, '*');
         });
+      });
 
-        document.getElementById('filterSelect').addEventListener('change', filterResults);
+      document.getElementById('filterSelect').addEventListener('change', filterResults);
     }
 
     window.onmessage = (event) => {
